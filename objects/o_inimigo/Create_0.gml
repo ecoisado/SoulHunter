@@ -10,10 +10,6 @@ chao = 0
 
 dir = 1
 
-right = 0
-left = 0
-jump = 0
-
 estado = noone
 
 knockback_h = 1
@@ -32,13 +28,6 @@ invencivel_duracao = 60
 atordoado = 0
 atordoado_duracao = 30
 
-pega_input = function()
-{
-    right = keyboard_check(vk_right)
-    left = keyboard_check(vk_left)
-    jump = keyboard_check_pressed(vk_space) 
-}
-
 checa_chao = function()
 {
     chao = place_meeting(x, y+1, o_chao)
@@ -56,13 +45,6 @@ aplica_gravidade = function()
         velv += grav
         velv = clamp(velv, -velv_max, velv_max)	
     }
-}
-
-aplica_velocidade = function()
-{
-    velh = (right - left) * velh_max
-    
-    if jump && chao velv = -velv_max
 }
 
 aplica_movimento = function()
@@ -115,7 +97,7 @@ knockback = function(_alvo = noone)
 
 toma_dano = function()
 {
-    var _alvo = instance_place(x, y, o_inimigo)
+    var _alvo = instance_place(x, y, o_player)
 
     if _alvo && invencivel <= 0 && !morto
     {
@@ -132,43 +114,13 @@ toma_dano = function()
     }
 }
 
-reseta_atordoado = function()
-{
-    if(atordoado > 0)
-    {
-        atordoado--
-        can_flip = 0
-    }
-    else 
-    {
-        hit = 0
-        dano = 0
-    }
-}
-
-reseta_invencivel = function()
-{
-    if invencivel > 0 
-    {
-        invencivel--
-        
-        if !morto image_alpha = 0.5
-    }
-    else 
-    {
-        image_alpha = 1
-    }
-}
-
-#region maquina de estados
-
 Parado = function()
 {
-    troca_sprite(s_player_idle)
+    troca_sprite(s_inimigo)
     
-    if right xor left estado = Andando
+    if velh != 0 estado = Andando
         
-    if jump estado = Pulando
+    //if jump estado = Pulando
         
     if !chao estado = Pulando
         
@@ -177,11 +129,9 @@ Parado = function()
 
 Andando = function()
 {
-    troca_sprite(s_player_run)
+    troca_sprite(s_inimigo)
     
-    if !right && !left estado = Parado
-    
-    if jump estado = Pulando
+    //if jump estado = Pulando
         
     if !chao estado = Pulando
         
@@ -190,9 +140,9 @@ Andando = function()
 
 Pulando = function()
 {
-    if velv < 0 troca_sprite(s_player_jump)
+    if velv < 0 troca_sprite(s_inimigo)
     
-    if velv > 0 troca_sprite(s_player_fall)
+    if velv > 0 troca_sprite(s_inimigo)
         
     if chao estado = Parado
         
@@ -201,11 +151,7 @@ Pulando = function()
 
 Dano = function()
 {
-    troca_sprite(s_player_hit)
-    
-    if atordoado <= 0 estado = Parado
+    troca_sprite(s_inimigo)
 }
 
 estado = Parado
-
-#endregion

@@ -1,6 +1,14 @@
-pega_input()
+if !hit pega_input()
 checa_chao()
 aplica_gravidade()
-aplica_velocidade()
+if !hit aplica_velocidade()
+toma_dano()
 aplica_movimento()
-flip()
+if !hit flip()
+    
+reseta_atordoado()
+reseta_invencivel()
+
+
+
+estado()
