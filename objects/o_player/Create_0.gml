@@ -13,6 +13,11 @@ dir = 1
 right = 0
 left = 0
 jump = 0
+attack = 0
+
+keyboard_set_map(ord("D"), vk_right)
+keyboard_set_map(ord("A"), vk_left)
+keyboard_set_map(ord("W"), vk_space)
 
 estado = noone
 
@@ -37,6 +42,7 @@ pega_input = function()
     right = keyboard_check(vk_right)
     left = keyboard_check(vk_left)
     jump = keyboard_check_pressed(vk_space) 
+    attack = keyboard_check_pressed(ord("K")) || mouse_check_button_pressed(mb_left)
 }
 
 checa_chao = function()
@@ -118,17 +124,30 @@ toma_dano = function()
     var _alvo = instance_place(x, y, o_inimigo)
 
     if _alvo && invencivel <= 0 && !morto
-    {
-        //if !_alvo.morto && !_alvo.hit
-        //{
-            
-        //}
-        
+    { 
         vida--
         hit = 1
         knockback(_alvo)
         atordoado = atordoado_duracao
         invencivel = invencivel_duracao
+    }
+}
+
+Aplica_Trigger = function()
+{
+    
+    var _ind = 4
+    
+    if !chao
+    {
+        _ind = 0
+    }
+    
+    
+    if image_index == _ind
+    {
+        trigger_on = 1
+        var _atk = instance_create_layer(x + (13 * dir), y+9, layer, o_trigger_damage)
     }
 }
 
@@ -173,6 +192,8 @@ Parado = function()
     if !chao estado = Pulando
         
     if hit estado = Dano
+        
+    if attack estado = Ataque
 }
 
 Andando = function()
@@ -186,6 +207,8 @@ Andando = function()
     if !chao estado = Pulando
         
     if hit estado = Dano
+        
+    if attack estado = Ataque_Andando
 }
 
 Pulando = function()
@@ -197,6 +220,8 @@ Pulando = function()
     if chao estado = Parado
         
     if hit estado = Dano
+        
+    if attack estado = Ataque_Aereo
 }
 
 Dano = function()
@@ -204,6 +229,33 @@ Dano = function()
     troca_sprite(s_player_hit)
     
     if atordoado <= 0 estado = Parado
+}
+
+Ataque = function()
+{
+    troca_sprite(s_player_attack)
+    
+    Aplica_Trigger()
+    
+    if acabou_animacao() estado = Parado
+}
+
+Ataque_Andando = function()
+{
+    troca_sprite(s_player_attack_run)
+    
+    Aplica_Trigger()
+    
+    if acabou_animacao() estado = Parado
+}
+
+Ataque_Aereo = function()
+{
+    troca_sprite(s_player_attack_jump)
+    
+    Aplica_Trigger()
+    
+    if acabou_animacao() estado = Pulando
 }
 
 estado = Parado

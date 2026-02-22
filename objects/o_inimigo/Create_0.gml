@@ -97,26 +97,38 @@ knockback = function(_alvo = noone)
 
 toma_dano = function()
 {
-    var _alvo = instance_place(x, y, o_player)
+    var _alvo = instance_place(x, y, o_trigger_damage)
 
     if _alvo && invencivel <= 0 && !morto
-    {
-        //if !_alvo.morto && !_alvo.hit
-        //{
-            
-        //}
-        
+    { 
         vida--
         hit = 1
         knockback(_alvo)
         atordoado = atordoado_duracao
-        invencivel = invencivel_duracao
+        //invencivel = invencivel_duracao
+    }
+}
+
+reseta_atordoado = function()
+{
+    if(atordoado > 0)
+    {
+        atordoado--
+        can_flip = 0
+    }
+    else 
+    {
+        hit = 0
+        dano = 0
     }
 }
 
 Parado = function()
 {
     troca_sprite(s_inimigo)
+    
+    velh = 0
+    velv = 0
     
     if velh != 0 estado = Andando
         
@@ -152,6 +164,8 @@ Pulando = function()
 Dano = function()
 {
     troca_sprite(s_inimigo)
+    
+    if atordoado <= 0 estado = Parado
 }
 
 estado = Parado
