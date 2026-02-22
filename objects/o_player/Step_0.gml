@@ -1,0 +1,6 @@
+pega_input()
+checa_chao()
+aplica_gravidade()
+aplica_velocidade()
+aplica_movimento()
+flip()
