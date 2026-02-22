@@ -1,13 +1,14 @@
-if !hit pega_input()
+if !hit && !morto pega_input()
 checa_chao()
 aplica_gravidade()
-if !hit aplica_velocidade()
+if !hit && !morto aplica_velocidade()
 toma_dano()
 aplica_movimento()
 if !hit flip()
     
 reseta_atordoado()
 reseta_invencivel()
+reseta_ataque()
 
 
 

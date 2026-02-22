@@ -36,6 +36,9 @@ invencivel = 0
 invencivel_duracao = 60
 atordoado = 0
 atordoado_duracao = 30
+atacando = 0
+ataque_intervalo = 0
+ataque_intervalo_duracao = 30
 
 pega_input = function()
 {
@@ -179,6 +182,39 @@ reseta_invencivel = function()
     }
 }
 
+reseta_ataque = function()
+{
+    if ataque_intervalo > 0
+    {
+        ataque_intervalo--
+    }
+}
+
+desenha_vida = function()
+{
+    var _espaco = 60
+    var _escala = 2
+    
+    if vida_partes == vida_partes_max
+    {
+        vida_partes = 0 
+        max_vida++
+        vida = max_vida
+    }
+    
+    for (var i = 0; i < max_vida; i++) 
+    {
+        draw_sprite_ext(s_vida_hud, 1, 20 + (_espaco*i), 20, _escala, _escala, 0, c_white, 1)	
+    }
+    
+    for (var i = 0; i < vida; i++) 
+    {
+        draw_sprite_ext(s_vida_hud, 0, 20 + (_espaco*i), 20, _escala, _escala, 0, c_white, 1)	
+    }
+    
+    if vida < 0 morto = 1
+}
+
 #region maquina de estados
 
 Parado = function()
@@ -193,7 +229,14 @@ Parado = function()
         
     if hit estado = Dano
         
-    if attack estado = Ataque
+    //if attack estado = Ataque
+        
+    if attack && chao && ataque_intervalo <= 0
+    {
+        ataque_intervalo = ataque_intervalo_duracao
+        atacando = 1
+        estado = Ataque
+    }
 }
 
 Andando = function()
@@ -208,7 +251,11 @@ Andando = function()
         
     if hit estado = Dano
         
-    if attack estado = Ataque_Andando
+    if attack && chao
+    {
+        atacando = 1
+        estado = Ataque_Andando
+    }
 }
 
 Pulando = function()
@@ -221,14 +268,39 @@ Pulando = function()
         
     if hit estado = Dano
         
-    if attack estado = Ataque_Aereo
+    //if attack estado = Ataque_Aereo
+        
+    if attack && ataque_intervalo <= 0
+    {
+        ataque_intervalo = ataque_intervalo_duracao
+        atacando = 1
+        estado = Ataque_Aereo
+    }
+    
+    if chao && !attack
+    {
+        //_inicio_pulo = 1
+        //qtd_pulos_atual = qtd_pulos
+        //estado = Parado
+    }
 }
 
 Dano = function()
 {
     troca_sprite(s_player_hit)
     
-    if atordoado <= 0 estado = Parado
+    if atordoado <= 0 
+    {
+        if !morto
+        {
+            estado = Parado
+        }
+        else 
+        {
+            estado = Morrendo
+            velh = 0	
+        }
+    }
 }
 
 Ataque = function()
@@ -237,7 +309,11 @@ Ataque = function()
     
     Aplica_Trigger()
     
-    if acabou_animacao() estado = Parado
+    if acabou_animacao() 
+    {
+        atacando = 0
+        estado = Parado
+    }
 }
 
 Ataque_Andando = function()
@@ -246,7 +322,11 @@ Ataque_Andando = function()
     
     Aplica_Trigger()
     
-    if acabou_animacao() estado = Parado
+    if acabou_animacao() 
+    {
+        atacando = 0
+        estado = Parado
+    }
 }
 
 Ataque_Aereo = function()
@@ -255,7 +335,28 @@ Ataque_Aereo = function()
     
     Aplica_Trigger()
     
-    if acabou_animacao() estado = Pulando
+    if acabou_animacao() 
+    {
+        atacando = 0
+        estado = Parado
+    }
+}
+
+Morrendo = function()
+{
+    troca_sprite(s_player_dead)
+    
+    image_alpha = 1
+    
+    if acabou_animacao() estado = Morto
+}
+
+Morto = function()
+{
+    troca_sprite(s_player_dead)
+    
+    image_index = image_number-1
+    image_speed = 0
 }
 
 estado = Parado
