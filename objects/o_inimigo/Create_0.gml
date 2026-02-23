@@ -16,7 +16,7 @@ knockback_h = 1
 knockback_v = 1
 
 min_vida = 1
-max_vida = 3
+max_vida = 1
 vida_partes = 0
 vida_partes_max = 2
 vida = max_vida
@@ -101,7 +101,7 @@ toma_dano = function()
 
     if _alvo && invencivel <= 0 && !morto
     { 
-        vida--
+        if !hit vida--
         hit = 1
         knockback(_alvo)
         atordoado = atordoado_duracao
@@ -165,7 +165,23 @@ Dano = function()
 {
     troca_sprite(s_inimigo)
     
-    if atordoado <= 0 estado = Parado
+    if atordoado <= 0 
+    {
+        if vida >= 1
+        {
+            estado = Parado
+        }
+        else 
+        {
+            estado = Morrendo	
+        }
+    }
+    
+}
+
+Morrendo = function()
+{
+    instance_destroy()
 }
 
 estado = Parado

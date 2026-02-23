@@ -1,12 +1,17 @@
 velh = 0
 velv = 0
 
-velh_max = 1
+velh_max = 1.2
 velv_max = 4
+velv_max_planando = .5
 
-grav = .12
+grav = .2
+grav_planando = 0.05
+
+planando = 0
 
 chao = 0
+teto = 0
 
 dir = 1
 
@@ -45,12 +50,19 @@ pega_input = function()
     right = keyboard_check(vk_right)
     left = keyboard_check(vk_left)
     jump = keyboard_check_pressed(vk_space) 
+    jumpHeld = keyboard_check(vk_space)
     attack = keyboard_check_pressed(ord("K")) || mouse_check_button_pressed(mb_left)
+    soul = mouse_check_button(mb_right)
 }
 
 checa_chao = function()
 {
     chao = place_meeting(x, y+1, o_chao)
+}
+
+checa_teto = function()
+{
+    teto = place_meeting(x, y-1, o_chao)
 }
 
 aplica_gravidade = function()
@@ -62,8 +74,23 @@ aplica_gravidade = function()
     }
     else 
     {
+        if !planando
+        {
+            velv += grav
+            velv = clamp(velv, -velv_max, velv_max)	
+        }
+        else 
+        {
+            velv += grav_planando
+            velv = clamp(velv, -velv_max_planando, velv_max_planando)		
+        }
+        
+    }
+    
+    if teto 
+    {
+        velv = 0
         velv += grav
-        velv = clamp(velv, -velv_max, velv_max)	
     }
 }
 
@@ -128,11 +155,15 @@ toma_dano = function()
 
     if _alvo && invencivel <= 0 && !morto
     { 
-        vida--
-        hit = 1
-        knockback(_alvo)
-        atordoado = atordoado_duracao
-        invencivel = invencivel_duracao
+        if !_alvo.hit
+        {
+            vida--
+            hit = 1
+            knockback(_alvo)
+            atordoado = atordoado_duracao
+            invencivel = invencivel_duracao
+        }
+        
     }
 }
 
@@ -215,10 +246,37 @@ desenha_vida = function()
     if vida < 0 morto = 1
 }
 
+suga_alma = function()
+{
+    var _nearest= instance_nearest(x, y, o_alma);
+    if (_nearest != noone)
+    {
+        if (point_distance(x, y, _nearest.x, _nearest.y) < 100)
+        { 
+            image_blend = c_aqua
+            
+            if soul
+            {
+                var _vel = 0.05; // Velocidade da suavização (0 a 1)
+                _nearest.x = lerp(_nearest.x, o_player.x, _vel);
+                _nearest.y = lerp(_nearest.y, o_player.y-10, _vel);   
+            }
+        }
+        else 
+        {
+            image_blend = c_white	
+        }
+    }
+    else 
+    {
+        image_blend = c_white	
+    }
+}
+
 #region maquina de estados
 
 Parado = function()
-{
+{ 
     troca_sprite(s_player_idle)
     
     if right xor left estado = Andando
@@ -237,6 +295,8 @@ Parado = function()
         atacando = 1
         estado = Ataque
     }
+    
+    if soul estado = Pega_Alma
 }
 
 Andando = function()
@@ -260,10 +320,21 @@ Andando = function()
 
 Pulando = function()
 {
+    image_blend = c_white
+    
     if velv < 0 troca_sprite(s_player_jump)
     
     if velv > 0 troca_sprite(s_player_fall)
-        
+     
+    if velv > 0 && jump 
+    {
+        if jumpHeld
+        {
+            planando = 1
+            estado = Planando
+        } 
+    }
+       
     if chao estado = Parado
         
     if hit estado = Dano
@@ -285,6 +356,27 @@ Pulando = function()
     }
 }
 
+Planando = function()
+{ 
+    if !chao && !jumpHeld 
+    {
+        planando = 0
+        estado = Pulando
+    }
+    
+    if chao 
+    {
+        planando = 0
+        estado = Parado
+    }
+    
+    if hit 
+    {
+        planando = 0
+        estado = Dano
+    }
+}
+
 Dano = function()
 {
     troca_sprite(s_player_hit)
@@ -300,6 +392,14 @@ Dano = function()
             estado = Morrendo
             velh = 0	
         }
+    }
+}
+
+Pega_Alma = function()
+{ 
+    if !soul 
+    {
+        estado = Parado
     }
 }
 
@@ -362,3 +462,4 @@ Morto = function()
 estado = Parado
 
 #endregion
+
