@@ -259,7 +259,7 @@ suga_alma = function()
             {
                 var _vel = 0.05; // Velocidade da suavização (0 a 1)
                 _nearest.x = lerp(_nearest.x, o_player.x, _vel);
-                _nearest.y = lerp(_nearest.y, o_player.y-10, _vel);   
+                _nearest.y = lerp(_nearest.y, o_player.y-5, _vel);   
             }
         }
         else 
@@ -316,6 +316,9 @@ Andando = function()
         atacando = 1
         estado = Ataque_Andando
     }
+    
+    if soul estado = Pega_Alma
+    
 }
 
 Pulando = function()
@@ -357,7 +360,16 @@ Pulando = function()
 }
 
 Planando = function()
+{
+    troca_sprite(s_player_fly)
+    
+    if acabou_animacao() estado = Planando_loop
+}
+
+Planando_loop = function()
 { 
+    troca_sprite(s_player_fly_loop)
+    
     if !chao && !jumpHeld 
     {
         planando = 0
@@ -397,6 +409,10 @@ Dano = function()
 
 Pega_Alma = function()
 { 
+    troca_sprite(s_player_soul)
+    
+    velh = 0
+    
     if !soul 
     {
         estado = Parado
