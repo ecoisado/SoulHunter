@@ -1,19 +1,23 @@
 velh = 0
 velv = 0
 
-velh_max = 1
+velh_max = .5
 velv_max = 4
 
 grav = .12
 
 chao = 0
 
+var _layer_id = layer_get_id("T_Chao")
+var _layer_id2 = layer_get_id("T_Chao_1")
+colisao = [layer_tilemap_get_id(_layer_id), layer_tilemap_get_id(_layer_id2), o_chao]
+
 dir = 1
 
 estado = noone
 
 knockback_h = 1
-knockback_v = 1
+knockback_v = 0
 
 min_vida = 1
 max_vida = 1
@@ -28,9 +32,12 @@ invencivel_duracao = 60
 atordoado = 0
 atordoado_duracao = 30
 
+andando = false
+tempo_para_andar = 60
+
 checa_chao = function()
 {
-    chao = place_meeting(x, y+1, o_chao)
+    chao = place_meeting(x, y+1, colisao)
 }
 
 aplica_gravidade = function()
@@ -49,8 +56,8 @@ aplica_gravidade = function()
 
 aplica_movimento = function()
 {
-    move_and_collide(velh, 0, o_chao, 12)
-    move_and_collide(0, velv, o_chao, 12)
+    move_and_collide(velh, 0, colisao, 12)
+    move_and_collide(0, velv, colisao, 12)
 }
 
 flip = function()
@@ -101,11 +108,19 @@ toma_dano = function()
 
     if _alvo && invencivel <= 0 && !morto
     { 
-        if !hit vida--
-        hit = 1
-        knockback(_alvo)
-        atordoado = atordoado_duracao
-        //invencivel = invencivel_duracao
+        if instance_exists(o_player)
+        {
+            if !o_player.hit
+            {
+                if !hit vida--
+                hit = 1
+                knockback(_alvo)
+                atordoado = atordoado_duracao
+                //invencivel = invencivel_duracao
+            }
+            
+        }
+        
     }
 }
 
@@ -123,65 +138,78 @@ reseta_atordoado = function()
     }
 }
 
+patrulha = function()
+{
+    if(chao)
+    {
+        //diminuindo o tempo para andar...
+        tempo_para_andar--
+        //...se o tempo zerou eu escolho se ando ou não...
+        if(tempo_para_andar <= 0) 
+        {
+            andando = choose(true, false) 
+            
+            if(andando)
+            {
+                //escolhendo se vai pra esquerda ou direita
+                velh = choose(-velh_max, velh_max) 
+            }
+            else 
+            {
+                //se não andar zera a velh para parar o movimento
+                velh = 0	
+            }
+            
+            //resetando o tempo para andar
+            tempo_para_andar = room_speed * random_range(1, 2) 
+        } 
+    }
+}
+
 Parado = function()
 {
-    troca_sprite(s_inimigo)
-    
-    velh = 0
-    velv = 0
+    troca_sprite(s_inimigo_idle)
     
     if velh != 0 estado = Andando
-        
-    //if jump estado = Pulando
-        
-    if !chao estado = Pulando
         
     if hit estado = Dano
 }
 
 Andando = function()
 {
-    troca_sprite(s_inimigo)
+    troca_sprite(s_inimigo_walk)
     
-    //if jump estado = Pulando
-        
-    if !chao estado = Pulando
-        
-    if hit estado = Dano
-}
-
-Pulando = function()
-{
-    if velv < 0 troca_sprite(s_inimigo)
-    
-    if velv > 0 troca_sprite(s_inimigo)
-        
-    if chao estado = Parado
+    if velh == 0 estado = Parado
         
     if hit estado = Dano
 }
 
 Dano = function()
 {
-    troca_sprite(s_inimigo)
+    troca_sprite(s_inimigo_hit)
+    
+    andando = 0
     
     if atordoado <= 0 
     {
-        if vida >= 1
+        if vida < 1
         {
-            estado = Parado
+            estado = Morto
         }
         else 
         {
-            estado = Morrendo	
+        	estado = Parado
         }
+        
     }
-    
 }
 
-Morrendo = function()
+Morto = function()
 {
     instance_destroy()
 }
 
 estado = Parado
+
+
+

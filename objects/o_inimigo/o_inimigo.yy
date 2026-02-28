@@ -28,13 +28,15 @@
   "physicsShape":1,
   "physicsShapePoints":[],
   "physicsStartAwake":true,
-  "properties":[],
+  "properties":[
+    {"$GMObjectProperty":"v2","%Name":"pode_cair","filters":[],"listItems":[],"multiselect":false,"name":"pode_cair","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"False","varType":3,},
+  ],
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"s_inimigo",
-    "path":"sprites/s_inimigo/s_inimigo.yy",
+    "name":"s_inimigo_walk",
+    "path":"sprites/s_inimigo_walk/s_inimigo_walk.yy",
   },
   "spriteMaskId":null,
   "visible":true,

@@ -1,2 +1,2 @@
 instance_destroy(other)
-if vida < max_vida vida++
+if global.vida < global.max_vida global.vida++

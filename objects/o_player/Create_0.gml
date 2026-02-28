@@ -1,3 +1,8 @@
+x = global.pos_inicial_x
+y = global.pos_inicial_y
+
+inicia_efeito_squash()
+
 velh = 0
 velv = 0
 
@@ -12,6 +17,12 @@ planando = 0
 
 chao = 0
 teto = 0
+
+tremer = 0
+
+var _layer_id1 = layer_get_id("T_Chao")
+var _layer_id2 = layer_get_id("T_Chao_1")
+colisao = [layer_tilemap_get_id(_layer_id1), layer_tilemap_get_id(_layer_id2)]
 
 dir = 1
 
@@ -29,14 +40,9 @@ estado = noone
 knockback_h = 1
 knockback_v = 1
 
-min_vida = 1
-max_vida = 3
-vida_partes = 0
-vida_partes_max = 2
-vida = max_vida
-morto = 0
 hit = 0
 dano = 0
+morto = 0
 invencivel = 0
 invencivel_duracao = 60
 atordoado = 0
@@ -57,12 +63,12 @@ pega_input = function()
 
 checa_chao = function()
 {
-    chao = place_meeting(x, y+1, o_chao)
+    chao = place_meeting(x, y+1, colisao)
 }
 
 checa_teto = function()
 {
-    teto = place_meeting(x, y-1, o_chao)
+    teto = place_meeting(x, y-1, colisao)
 }
 
 aplica_gravidade = function()
@@ -103,8 +109,8 @@ aplica_velocidade = function()
 
 aplica_movimento = function()
 {
-    move_and_collide(velh, 0, o_chao, 12)
-    move_and_collide(0, velv, o_chao, 12)
+    move_and_collide(velh, 0, colisao, 12)
+    move_and_collide(0, velv, colisao, 12)
 }
 
 flip = function()
@@ -157,7 +163,8 @@ toma_dano = function()
     { 
         if !_alvo.hit
         {
-            vida--
+            _alvo.andando = 0
+            global.vida--
             hit = 1
             knockback(_alvo)
             atordoado = atordoado_duracao
@@ -226,24 +233,40 @@ desenha_vida = function()
     var _espaco = 60
     var _escala = 2
     
-    if vida_partes == vida_partes_max
+    if global.vida_partes == global.vida_partes_max
     {
-        vida_partes = 0 
-        max_vida++
-        vida = max_vida
+        global.vida_partes = 0 
+        global.max_vida++
+        global.vida = global.max_vida
     }
     
-    for (var i = 0; i < max_vida; i++) 
+    for (var i = 0; i < global.max_vida; i++) 
     {
         draw_sprite_ext(s_vida_hud, 1, 20 + (_espaco*i), 20, _escala, _escala, 0, c_white, 1)	
     }
     
-    for (var i = 0; i < vida; i++) 
+    for (var i = 0; i < global.vida; i++) 
     {
         draw_sprite_ext(s_vida_hud, 0, 20 + (_espaco*i), 20, _escala, _escala, 0, c_white, 1)	
     }
     
-    if vida < 0 morto = 1
+    if global.transicao //munda das almas
+    {
+        if global.vida < 0 morto = 1
+    }
+    else 
+    {
+        if global.vida < 1
+        {
+            if !global.entrou_transicao 
+            {
+                global.transicao = 1
+                global.vida = 0
+                global.entrou_transicao = 1
+            }
+        }
+        	
+    }
 }
 
 suga_alma = function()
@@ -251,13 +274,13 @@ suga_alma = function()
     var _nearest= instance_nearest(x, y, o_alma);
     if (_nearest != noone)
     {
-        if (point_distance(x, y, _nearest.x, _nearest.y) < 100)
+        if (point_distance(x, y, _nearest.x, _nearest.y) < 60)
         { 
             image_blend = c_aqua
+            var _vel = 0.05; // Velocidade da suavização (0 a 1)
             
             if soul
             {
-                var _vel = 0.05; // Velocidade da suavização (0 a 1)
                 _nearest.x = lerp(_nearest.x, o_player.x, _vel);
                 _nearest.y = lerp(_nearest.y, o_player.y-5, _vel);   
             }
@@ -273,15 +296,132 @@ suga_alma = function()
     }
 }
 
+troca_mundos = function()
+{
+    if keyboard_check_pressed(ord("E"))
+    {
+        if global.transicao
+        {
+            //estou no mundo das almas e quero sair
+            if place_meeting(x, y, o_transicao) && global.vida == global.max_vida
+            {
+                if instance_exists(o_game) 
+                {
+                    global.transicao = 0
+                    o_game.desativa_transicao() 
+                    global.entrou_transicao = 0
+                }
+            }
+        }
+        else 
+        {
+            //estou fora do mundo das almas e quero entrar	
+            if !global.entrou_transicao 
+            {
+                global.transicao = 1
+                global.vida = 0
+                global.entrou_transicao = 1
+            }
+            
+        }
+    }
+}
+
+entra_porta = function()
+{
+    var _porta = instance_place(x+sign(velh), y, o_porta)
+
+    if _porta != -4 
+    {
+        if room_get_name(room) == "Room1"
+        {
+            if _porta.porta == "E"
+            {
+                global.pos_inicial_x = 372
+                global.pos_inicial_y = 204
+            } 
+            
+            if _porta.porta == "D"
+            {
+                global.pos_inicial_x = 12
+                global.pos_inicial_y = 132
+            }
+        }
+        
+        if room_get_name(room) == "Room1_a"
+        {
+            if _porta.porta == "E"
+            {
+                global.pos_inicial_x = 372 //posicao na room1
+                global.pos_inicial_y = 132
+            } 
+            
+            if _porta.porta == "D"
+            {
+                global.pos_inicial_x = 12
+                global.pos_inicial_y = 132
+            }
+            
+        }
+        
+        if room_get_name(room) == "Room1_b"
+        {
+            if _porta.porta == "E"
+            {
+                global.pos_inicial_x = 372
+                global.pos_inicial_y = 132
+            } 
+            
+            if _porta.porta == "D"
+            {
+                global.pos_inicial_x = 12
+                global.pos_inicial_y = 204
+            }
+            
+        }
+        
+        if room_get_name(room) == "Room2"
+        {
+            global.pos_inicial_x = 12
+            global.pos_inicial_y = 132
+        }
+        
+        if room_get_name(room) == "Room3"
+        {
+            global.pos_inicial_x = 372
+            global.pos_inicial_y = 132
+        }
+        
+        
+        room_goto(_porta.destino)
+    }
+}
+
+pega_upgrade = function()
+{
+    estado = Up_Inicio
+}
+
+
+
 #region maquina de estados
 
 Parado = function()
 { 
     troca_sprite(s_player_idle)
     
+    if !hit && !morto && !soul aplica_velocidade()
+        
+    aplica_movimento()
+    
     if right xor left estado = Andando
         
-    if jump estado = Pulando
+    if jump && chao
+    {
+        instance_create_depth(x, y, depth-1, o_pulo_part)
+        efeito_squash(.5, 1.5)
+        estado = Pulando
+    }
         
     if !chao estado = Pulando
         
@@ -303,9 +443,18 @@ Andando = function()
 {
     troca_sprite(s_player_run)
     
+    if !hit && !morto && !soul aplica_velocidade()
+        
+    aplica_movimento()
+    
     if !right && !left estado = Parado
     
-    if jump estado = Pulando
+    if jump && chao
+    {
+        instance_create_depth(x, y, depth-1, o_pulo_part)
+        efeito_squash(.5, 1.5)
+        estado = Pulando
+    }
         
     if !chao estado = Pulando
         
@@ -325,20 +474,56 @@ Pulando = function()
 {
     image_blend = c_white
     
-    if velv < 0 troca_sprite(s_player_jump)
+    if !hit && !morto && !soul aplica_velocidade()
+        
+    aplica_movimento()
     
-    if velv > 0 troca_sprite(s_player_fall)
+    if velv < 0 
+    {
+        troca_sprite(s_player_jump)
+        
+        if array_contains(colisao, o_plataforma_e)
+        {
+            var _ind = array_get_index(colisao, o_plataforma_e)
+            
+            array_delete(colisao, _ind, 1)
+        }
+    }
+    
+    if velv > 0 
+    {   
+        if !place_meeting(x, y, o_plataforma_e)
+        {
+            if !array_contains(colisao, o_plataforma_e) 
+            {
+                array_push(colisao, o_plataforma_e)
+            }
+        }
+        else 
+        {
+            colisao[2] = o_chao	
+        }
+        
+        
+        
+        troca_sprite(s_player_fall)
+    }
      
     if velv > 0 && jump 
     {
-        if jumpHeld
+        if jumpHeld && global.global_upgrade_helice
         {
             planando = 1
             estado = Planando
         } 
     }
        
-    if chao estado = Parado
+    if chao 
+    {
+        instance_create_depth(x, y, depth-1, o_queda_part)
+        efeito_squash(1.5, .7)
+        estado = Parado
+    }
         
     if hit estado = Dano
         
@@ -363,12 +548,32 @@ Planando = function()
 {
     troca_sprite(s_player_fly)
     
+    if !hit && !morto && !soul aplica_velocidade()
+        
+    aplica_movimento()
+    
     if acabou_animacao() estado = Planando_loop
 }
 
 Planando_loop = function()
 { 
     troca_sprite(s_player_fly_loop)
+    
+    if !hit && !morto && !soul aplica_velocidade()
+        
+    aplica_movimento()
+    
+    if !place_meeting(x, y, o_plataforma_e)
+    {
+        if !array_contains(colisao, o_plataforma_e) 
+        {
+            array_push(colisao, o_plataforma_e)
+        }
+    }
+    else 
+    {
+        colisao[2] = o_chao	
+    }
     
     if !chao && !jumpHeld 
     {
@@ -393,13 +598,19 @@ Dano = function()
 {
     troca_sprite(s_player_hit)
     
+    screenshake(2)
+    
+    if !hit && !morto && !soul aplica_velocidade()
+        
+    aplica_movimento()
+    
     if atordoado <= 0 
     {
         if !morto
         {
             estado = Parado
         }
-        else 
+        else
         {
             estado = Morrendo
             velh = 0	
@@ -423,6 +634,10 @@ Ataque = function()
 {
     troca_sprite(s_player_attack)
     
+    if !hit && !morto && !soul aplica_velocidade()
+        
+    aplica_movimento()
+    
     Aplica_Trigger()
     
     if acabou_animacao() 
@@ -430,12 +645,18 @@ Ataque = function()
         atacando = 0
         estado = Parado
     }
+    
+    if hit estado = Dano
 }
 
 Ataque_Andando = function()
 {
     troca_sprite(s_player_attack_run)
     
+    if !hit && !morto && !soul aplica_velocidade()
+        
+    aplica_movimento()
+    
     Aplica_Trigger()
     
     if acabou_animacao() 
@@ -443,12 +664,18 @@ Ataque_Andando = function()
         atacando = 0
         estado = Parado
     }
+    
+    if hit estado = Dano
 }
 
 Ataque_Aereo = function()
 {
     troca_sprite(s_player_attack_jump)
     
+    if !hit && !morto && !soul aplica_velocidade()
+        
+    aplica_movimento()
+    
     Aplica_Trigger()
     
     if acabou_animacao() 
@@ -456,6 +683,8 @@ Ataque_Aereo = function()
         atacando = 0
         estado = Parado
     }
+    
+    if hit estado = Dano
 }
 
 Morrendo = function()
@@ -475,7 +704,40 @@ Morto = function()
     image_speed = 0
 }
 
+Up_Inicio = function()
+{
+    troca_sprite(s_player_up_inicio)
+    
+    velh = 0
+    
+    aplica_movimento()
+    
+    if acabou_animacao() estado = Up_Loop
+}
+
+Up_Loop = function()
+{
+    troca_sprite(s_player_up_loop)
+    
+    velh = 0
+    
+    aplica_movimento()
+    
+    if !instance_exists(o_up_part) estado = Up_Final
+}
+
+Up_Final = function()
+{
+    troca_sprite(s_player_up_fim)
+    
+    aplica_movimento()
+    
+    if acabou_animacao() estado = Parado
+}
+
 estado = Parado
 
+
 #endregion
+
 
