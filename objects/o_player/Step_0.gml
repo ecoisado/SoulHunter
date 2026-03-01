@@ -16,10 +16,21 @@ entra_porta()
 
 estado()
 
+if place_meeting(x,y,o_deadzone) 
+{
+    deadzone = 1
+    global.vida--
+}
+else 
+{
+    deadzone = 0	
+}
+
 retorna_squash()
 
+global.vida_visual = lerp(global.vida_visual, global.vida, 0.05)
 
-
-
-//show_debug_message(global.transicao)
-
+if (abs(global.vida_visual - global.vida) < 0.01) 
+{
+    global.vida_visual = global.vida;
+}

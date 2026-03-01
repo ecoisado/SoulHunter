@@ -1,3 +1,5 @@
+if global.global_upgrade_helice instance_destroy()
+
 visivel = 0
 
 alvo = noone

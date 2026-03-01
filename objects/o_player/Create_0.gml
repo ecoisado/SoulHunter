@@ -30,6 +30,11 @@ right = 0
 left = 0
 jump = 0
 attack = 0
+soul = 0
+
+pode_sugar = 0
+
+deadzone = 0
 
 keyboard_set_map(ord("D"), vk_right)
 keyboard_set_map(ord("A"), vk_left)
@@ -58,7 +63,8 @@ pega_input = function()
     jump = keyboard_check_pressed(vk_space) 
     jumpHeld = keyboard_check(vk_space)
     attack = keyboard_check_pressed(ord("K")) || mouse_check_button_pressed(mb_left)
-    soul = mouse_check_button(mb_right)
+    change = keyboard_check_pressed(ord("E"))
+    soul = keyboard_check(ord("Q")) || mouse_check_button(mb_right)
 }
 
 checa_chao = function()
@@ -242,12 +248,12 @@ desenha_vida = function()
     
     for (var i = 0; i < global.max_vida; i++) 
     {
-        draw_sprite_ext(s_vida_hud, 1, 20 + (_espaco*i), 20, _escala, _escala, 0, c_white, 1)	
+        //draw_sprite_ext(s_vida_hud, 1, 20 + (_espaco*i), 20, _escala, _escala, 0, c_white, 1)	
     }
     
     for (var i = 0; i < global.vida; i++) 
     {
-        draw_sprite_ext(s_vida_hud, 0, 20 + (_espaco*i), 20, _escala, _escala, 0, c_white, 1)	
+        //draw_sprite_ext(s_vida_hud, 0, 20 + (_espaco*i), 20, _escala, _escala, 0, c_white, 1)	
     }
     
     if global.transicao //munda das almas
@@ -274,9 +280,10 @@ suga_alma = function()
     var _nearest= instance_nearest(x, y, o_alma);
     if (_nearest != noone)
     {
-        if (point_distance(x, y, _nearest.x, _nearest.y) < 60)
+        if (point_distance(x, y, _nearest.x, _nearest.y) < 60) && !morto
         { 
             image_blend = c_aqua
+            pode_sugar = 1
             var _vel = 0.05; // Velocidade da suavização (0 a 1)
             
             if soul
@@ -287,18 +294,20 @@ suga_alma = function()
         }
         else 
         {
+            pode_sugar = 0
             image_blend = c_white	
         }
     }
     else 
     {
+        pode_sugar = 0
         image_blend = c_white	
     }
 }
 
 troca_mundos = function()
 {
-    if keyboard_check_pressed(ord("E"))
+    if change && chao
     {
         if global.transicao
         {
@@ -429,7 +438,7 @@ Parado = function()
         
     //if attack estado = Ataque
         
-    if attack && chao && ataque_intervalo <= 0
+    if attack && chao && ataque_intervalo <= 0 && global.global_upgrade_sword
     {
         ataque_intervalo = ataque_intervalo_duracao
         atacando = 1
@@ -437,6 +446,11 @@ Parado = function()
     }
     
     if soul estado = Pega_Alma
+    
+    if place_meeting(x,y,o_deadzone)
+    {
+        estado = Dano    
+    }
 }
 
 Andando = function()
@@ -460,13 +474,18 @@ Andando = function()
         
     if hit estado = Dano
         
-    if attack && chao
+    if attack && chao && global.global_upgrade_sword
     {
         atacando = 1
         estado = Ataque_Andando
     }
     
     if soul estado = Pega_Alma
+        
+    if deadzone
+    {
+        estado = Dano    
+    }
     
 }
 
@@ -492,6 +511,8 @@ Pulando = function()
     
     if velv > 0 
     {   
+        troca_sprite(s_player_fall)
+        
         if !place_meeting(x, y, o_plataforma_e)
         {
             if !array_contains(colisao, o_plataforma_e) 
@@ -503,10 +524,6 @@ Pulando = function()
         {
             colisao[2] = o_chao	
         }
-        
-        
-        
-        troca_sprite(s_player_fall)
     }
      
     if velv > 0 && jump 
@@ -529,7 +546,7 @@ Pulando = function()
         
     //if attack estado = Ataque_Aereo
         
-    if attack && ataque_intervalo <= 0
+    if attack && ataque_intervalo <= 0 && global.global_upgrade_sword
     {
         ataque_intervalo = ataque_intervalo_duracao
         atacando = 1
@@ -542,6 +559,11 @@ Pulando = function()
         //qtd_pulos_atual = qtd_pulos
         //estado = Parado
     }
+    
+    if deadzone
+    {
+        estado = Dano    
+    }
 }
 
 Planando = function()
@@ -553,6 +575,11 @@ Planando = function()
     aplica_movimento()
     
     if acabou_animacao() estado = Planando_loop
+        
+    if deadzone
+    {
+        estado = Dano    
+    }
 }
 
 Planando_loop = function()
@@ -591,6 +618,11 @@ Planando_loop = function()
     {
         planando = 0
         estado = Dano
+    }
+    
+    if deadzone
+    {
+        estado = Dano    
     }
 }
 

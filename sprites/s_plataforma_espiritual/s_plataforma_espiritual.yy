@@ -1,8 +1,8 @@
 {
   "$GMSprite":"v2",
   "%Name":"s_plataforma_espiritual",
-  "bboxMode":0,
-  "bbox_bottom":11,
+  "bboxMode":2,
+  "bbox_bottom":0,
   "bbox_left":0,
   "bbox_right":35,
   "bbox_top":0,
@@ -42,7 +42,7 @@
     ],
     "top":1,
   },
-  "origin":0,
+  "origin":6,
   "parent":{
     "name":"Sprites",
     "path":"folders/Sprites.yy",
@@ -95,7 +95,7 @@
     "visibleRange":null,
     "volume":1.0,
     "xorigin":0,
-    "yorigin":0,
+    "yorigin":12,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

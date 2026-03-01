@@ -28,7 +28,7 @@ finalizando = function()
     
     image_yscale = lerp(image_yscale, 0, .2)
     
-    y = lerp(y, ystart+5, .2)
+    y = lerp(y, ystart, .2)
     
     desenha_texto = 0
     

@@ -2,6 +2,7 @@ espiritual = 0
 
 plat1 = noone
 plat2 = noone
+plat3 = noone
 
 delay_restart = 120
 
@@ -23,6 +24,11 @@ cria_plataforma = function()
             plat2 = instance_create_layer(o_slot2.x, o_slot2.y, "Espiritual", o_plataforma_e)
         }
         
+        if instance_exists(o_slot3)
+        {
+            plat3 = instance_create_layer(o_slot3.x, o_slot3.y, "Espiritual", o_plataforma_e)
+        }
+        
         cria_plat = 1
     }
    
@@ -32,6 +38,7 @@ destroi_plataforma = function()
 {
     instance_destroy(plat1)
     instance_destroy(plat2)
+    instance_destroy(plat3)
     cria_plat = 0
 }
 
@@ -52,7 +59,7 @@ ativa_transicao = function()
 {
     if !espiritual
     {
-        muda_bg(s_bg_1_2)
+        muda_bg(mundo_espiritual)
         tile_normal(0) 
         espiritual = 1
     }
@@ -60,7 +67,7 @@ ativa_transicao = function()
 
 desativa_transicao = function()
 { 
-    muda_bg(s_bg_1)	
+    muda_bg(mundo_original)	
     tile_normal(1)
     espiritual = 0
 }

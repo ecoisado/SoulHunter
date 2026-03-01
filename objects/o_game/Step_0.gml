@@ -17,5 +17,6 @@ else
 cria_portal()
 criar_up_helice()
 
+
 reseta_room()
 
